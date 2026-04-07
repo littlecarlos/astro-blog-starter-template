@@ -1,4 +1,4 @@
- const questionBanks = {
+window.questionBanks = {
         exam1: [
             { question: "A licensee may remain an involuntary inactive licensee:", options: ["For 1 year.", "For 2 years.", "For 4 years.", "Indefinitely."], answer: 1, explanation: "A license becomes involuntarily inactive for a period of up to two years. After that, it becomes null and void." },
             { question: "The examination application must be accompanied by:", options: ["2 passport-style, quality photographs", "The appropriate fee which includes the fee for the initial license.", "Letters of reference from 2 previous employers.", "A resume."], answer: 1, explanation: "The application requires the appropriate fee. Photographs and references are not required." },

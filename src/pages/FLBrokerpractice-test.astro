@@ -1,14 +1,22 @@
 <script is:inline src="/FLBrokerpracticetest2.js"></script>
 
 <script is:inline>
+    // --- Global State ---
+    window.currentQuestions = [];
+    window.currentIdx = 0;
+    window.score = 0;
+
+    // --- 1. Initialization (Fixes the "Total: 0" and Timer) ---
     function initApp() {
-        console.log("Checking for question bank...");
+        console.log("Syncing with Broker Engine...");
         
-        // Wait a split second to ensure the big file is parsed
+        // Wait for the big JS file to be parsed by the browser
         if (!window.questionBanks) {
+            console.log("Data not ready, retrying in 100ms...");
             return setTimeout(initApp, 100);
         }
 
+        // Calculate Total from all 16 exams
         let total = 0;
         for (let key in window.questionBanks) {
             total += window.questionBanks[key].length;
@@ -16,9 +24,9 @@
         
         const totalEl = document.getElementById('total-questions-header');
         if (totalEl) totalEl.innerText = total;
-        console.log("Success! Loaded questions:", total);
+        console.log("Success! Questions loaded:", total);
 
-        // Start Timer
+        // Start Global Timer
         let seconds = 0;
         setInterval(() => {
             seconds++;
@@ -29,11 +37,11 @@
         }, 1000);
     }
 
-    // Define the button logic globally
+    // --- 2. Button Logic (startQuiz, checkAnswer, nextQuestion) ---
     window.startQuiz = function(examId) {
         const bank = window.questionBanks[examId];
-        if (!bank) return alert("Exam " + examId + " not found!");
-        
+        if (!bank) return alert("Exam module " + examId + " not found!");
+
         window.currentQuestions = [...bank];
         window.currentIdx = 0;
         window.score = 0;
@@ -43,6 +51,39 @@
         showQuestion();
     };
 
-    // Run the initialization
-    initApp();
-</script>
+    function showQuestion() {
+        const q = window.currentQuestions[window.currentIdx];
+        document.getElementById('question-text').innerText = q.question;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => window.checkAnswer(i);
+            container.appendChild(btn);
+        });
+        
+        document.getElementById('explanation-container').classList.add('hidden');
+        document.getElementById('next-btn').disabled = true;
+    }
+
+    window.checkAnswer = function(i) {
+        const q = window.currentQuestions[window.currentIdx];
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.disabled = true);
+
+        if (i === q.answer) {
+            btns[i].style.borderColor = '#22c55e';
+            btns[i].style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+            window.score++;
+        } else {
+            btns[i].style.borderColor = '#ef4444';
+            btns[i].style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+            btns[q.answer].style.borderColor = '#22c55e';
+        }
+
+        document.getElementById('explanation-text').innerText = q.explanation;
+        document.
