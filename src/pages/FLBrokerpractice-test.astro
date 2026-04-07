@@ -3,44 +3,47 @@ import Layout from '../layouts/BlogPost.astro';
 ---
 
 <Layout
-	title="FL Real Estate Broker Practice Test"
-	description="Interactive practice exam for the Florida Real Estate Broker license."
-	pubDate={new Date('April 07 2026')}
-	heroImage="/blog-placeholder-3.jpg"
+    title="FL Real Estate Broker Practice Test"
+    description="Interactive practice exam for the Florida Real Estate Broker license."
+    pubDate={new Date('April 07 2026')}
+    heroImage="/blog-placeholder-3.jpg"
 >
     <style>
         :root {
-            --bg: #0f172a;
-            --panel: #111827;
-            --muted: #1f2937;
-            --text: #e5e7eb;
-            --text-dim: #9ca3af;
             --brand: #60a5fa;
             --ok: #22c55e;
             --bad: #ef4444;
             --ring: #334155;
+            --muted: #1f2937;
         }
-        /* We'll scope these to a specific container to avoid messing up your site header */
         .quiz-app-container {
-            color: var(--text);
             padding: 24px;
-            background: rgba(17, 24, 39, 0.85);
+            background: #111827; /* This creates that dark professional bar */
             border-radius: 18px;
             border: 1px solid var(--ring);
+            color: #e5e7eb;
+            min-height: 400px;
         }
-        /* ... All the other styles you provided go here ... */
-        .card { background: #0b1224; border: 1px solid var(--ring); border-radius: 14px; padding: 16px; }
-        .grid { display: grid; gap: 14px; }
+        .card { background: #0b1224; border: 1px solid var(--ring); border-radius: 14px; padding: 20px; }
+        .grid { display: grid; gap: 15px; }
         .grid-4 { grid-template-columns: repeat(4, 1fr); }
-        button.primary { background: linear-gradient(180deg, #2563eb, #1e40af); }
+        @media (max-width: 768px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+        button.primary { 
+            background: linear-gradient(180deg, #2563eb, #1e40af); 
+            color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer;
+        }
+        .option-btn { 
+            background: #1f2937; border: 1px solid var(--ring); color: white; 
+            padding: 15px; text-align: left; border-radius: 8px; cursor: pointer;
+        }
         .hidden { display: none !important; }
-        /* Add more of your CSS here as needed */
+        .explain { border-left: 4px solid var(--brand); padding-left: 15px; margin-top: 20px; }
     </style>
 
     <div class="quiz-app-container">
         <section id="home-screen" class="grid">
             <div class="card grid">
-                <h2>Select an Exam</h2>
+                <h2 style="margin-top:0;">Select an Exam Module</h2>
                 <div class="grid grid-4">
                     <button class="primary" onclick="startQuiz('exam1')">Exam 1</button>
                     </div>
@@ -48,14 +51,31 @@ import Layout from '../layouts/BlogPost.astro';
         </section>
 
         <section id="quiz-screen" class="grid hidden">
-            </section>
+            <div class="card grid">
+                <div id="question-text" style="font-size: 1.25rem; font-weight: 500;"></div>
+                <div id="options-container" class="grid"></div>
+                
+                <div id="explanation-container" class="explain hidden">
+                    <strong style="color: var(--brand);">Explanation:</strong>
+                    <p id="explanation-text" style="margin-top: 5px; color: #9ca3af;"></p>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                    <button class="primary" style="background: #374151;" onclick="goHome()">Exit to Home</button>
+                    <button id="next-btn" class="primary" onclick="nextQuestion()" disabled>Next Question</button>
+                </div>
+            </div>
+        </section>
         
         <section id="results-screen" class="grid hidden">
-            </section>
+            <div class="card grid" style="text-align: center; padding: 40px;">
+                <h2>Module Complete!</h2>
+                <div id="score" style="font-size: 4rem; font-weight: 800; color: var(--ok);">0%</div>
+                <button class="primary" onclick="goHome()" style="margin-top: 20px;">Try Another Module</button>
+            </div>
+        </section>
     </div>
-
-
-    <script is:inline>
+ <script is:inline>
     const questionBanks = {
         exam1: [
             { question: "A licensee may remain an involuntary inactive licensee:", options: ["For 1 year.", "For 2 years.", "For 4 years.", "Indefinitely."], answer: 1, explanation: "A license becomes involuntarily inactive for a period of up to two years. After that, it becomes null and void." },
@@ -1732,78 +1752,81 @@ exam16: [
   }
 ],
     };
-    // 2. State Management
+// --- Core Logic Functions ---
     let currentQuestions = [];
-        let currentIdx = 0;
-        let score = 0;
+    let currentIdx = 0;
+    let score = 0;
 
-        // 3. Core Functions
-        window.startQuiz = function(examId) {
-            currentQuestions = questionBanks[examId] || [];
-            currentIdx = 0;
-            score = 0;
-            
-            if (currentQuestions.length === 0) return alert("Exam data not found!");
+    window.startQuiz = function(examId) {
+        currentQuestions = questionBanks[examId] || [];
+        currentIdx = 0;
+        score = 0;
+        
+        if (currentQuestions.length === 0) return alert("Module data not found!");
 
-            document.getElementById('home-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = currentQuestions[currentIdx];
+        document.getElementById('question-text').innerText = q.question;
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(i);
+            container.appendChild(btn);
+        });
+        
+        document.getElementById('explanation-container').classList.add('hidden');
+        document.getElementById('next-btn').disabled = true;
+    }
+
+    window.checkAnswer = function(choiceIdx) {
+        const q = currentQuestions[currentIdx];
+        const btns = document.querySelectorAll('.option-btn');
+        
+        // Disable other buttons so they can't change answer
+        btns.forEach(b => b.disabled = true);
+
+        if (choiceIdx === q.answer) {
+            score++;
+            btns[choiceIdx].style.borderColor = 'var(--ok)';
+            btns[choiceIdx].style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+        } else {
+            btns[choiceIdx].style.borderColor = 'var(--bad)';
+            btns[choiceIdx].style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+            btns[q.answer].style.borderColor = 'var(--ok)';
+        }
+
+        document.getElementById('explanation-text').innerText = q.explanation;
+        document.getElementById('explanation-container').classList.remove('hidden');
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    window.nextQuestion = function() {
+        currentIdx++;
+        if (currentIdx < currentQuestions.length) {
             showQuestion();
+        } else {
+            showResults();
         }
+    }
 
-        function showQuestion() {
-            const q = currentQuestions[currentIdx];
-            document.getElementById('question-text').innerText = q.question;
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-            
-            q.options.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(i);
-                container.appendChild(btn);
-            });
-            
-            document.getElementById('explanation-container').classList.add('hidden');
-            document.getElementById('next-btn').disabled = true;
-        }
+    function showResults() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('results-screen').classList.remove('hidden');
+        const percent = Math.round((score / currentQuestions.length) * 100);
+        document.getElementById('score').innerText = `${percent}%`;
+    }
 
-        window.checkAnswer = function(choiceIdx) {
-            const q = currentQuestions[currentIdx];
-            const btns = document.querySelectorAll('.option-btn');
-            
-            if (choiceIdx === q.answer) {
-                score++;
-                btns[choiceIdx].style.borderColor = 'var(--ok)';
-            } else {
-                btns[choiceIdx].style.borderColor = 'var(--bad)';
-                btns[q.answer].style.borderColor = 'var(--ok)';
-            }
-
-            document.getElementById('explanation-text').innerText = q.explanation;
-            document.getElementById('explanation-container').classList.remove('hidden');
-            document.getElementById('next-btn').disabled = false;
-        }
-
-        window.nextQuestion = function() {
-            currentIdx++;
-            if (currentIdx < currentQuestions.length) {
-                showQuestion();
-            } else {
-                showResults();
-            }
-        }
-
-        function showResults() {
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('results-screen').classList.remove('hidden');
-            const percent = Math.round((score / currentQuestions.length) * 100);
-            document.getElementById('score').innerText = `${percent}%`;
-        }
-
-        window.goHome = function() {
-            location.reload(); // Quick way to reset the app state
-        }
-    </script>
-</Layout>
+    window.goHome = function() {
+        location.reload(); // Simple IT "reset"
+    }
+</script>
 </Layout>
