@@ -1782,25 +1782,24 @@ exam16: [
 ],
     };
 
-		] // This closes the last exam array
-    }; // This closes the questionBanks object
+		] // This closes the last exam array (e.g., exam16)
+    }; // This closes the entire questionBanks object
 
-    // --- State Management ---
-    let currentQuestions = [];
-    let currentIdx = 0;
-    let score = 0;
+    // --- 1. GLOBAL STATE ---
+    // We attach these to window so they are accessible to your HTML buttons
+    window.currentQuestions = [];
+    window.currentIdx = 0;
+    window.score = 0;
 
-    // --- Global Functions (Attached to window so buttons can see them) ---
+    // --- 2. THE ENGINE ---
     window.startQuiz = function(examId) {
+        console.log("Loading Module:", examId);
         const bank = questionBanks[examId];
-        if (!bank) {
-            alert("Module " + examId + " not found!");
-            return;
-        }
-        
-        currentQuestions = [...bank]; // Shallow copy for safety
-        currentIdx = 0;
-        score = 0;
+        if (!bank) return alert("Error: Data for " + examId + " not found.");
+
+        window.currentQuestions = [...bank];
+        window.currentIdx = 0;
+        window.score = 0;
 
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
@@ -1808,7 +1807,7 @@ exam16: [
     };
 
     function showQuestion() {
-        const q = currentQuestions[currentIdx];
+        const q = window.currentQuestions[window.currentIdx];
         document.getElementById('question-text').innerText = q.question;
         const container = document.getElementById('options-container');
         container.innerHTML = '';
@@ -1817,7 +1816,7 @@ exam16: [
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(i);
+            btn.onclick = () => window.checkAnswer(i);
             container.appendChild(btn);
         });
         
@@ -1826,14 +1825,14 @@ exam16: [
     }
 
     window.checkAnswer = function(i) {
-        const q = currentQuestions[currentIdx];
+        const q = window.currentQuestions[window.currentIdx];
         const btns = document.querySelectorAll('.option-btn');
         btns.forEach(b => b.disabled = true);
 
         if (i === q.answer) {
             btns[i].style.borderColor = '#22c55e';
             btns[i].style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
-            score++;
+            window.score++;
         } else {
             btns[i].style.borderColor = '#ef4444';
             btns[i].style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
@@ -1846,25 +1845,28 @@ exam16: [
     };
 
     window.nextQuestion = function() {
-        currentIdx++;
-        if (currentIdx < currentQuestions.length) {
+        window.currentIdx++;
+        if (window.currentIdx < window.currentQuestions.length) {
             showQuestion();
         } else {
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('results-screen').classList.remove('hidden');
-            const percent = Math.round((score / currentQuestions.length) * 100);
-            document.getElementById('score').innerText = percent + "%";
+            alert("Module Complete! Your score: " + window.score + "/" + window.currentQuestions.length);
+            location.reload(); 
         }
     };
 
-    // --- Initialization ---
+    // --- 3. INITIALIZATION (Runs last) ---
     function initApp() {
+        console.log("Initializing Exam Stats...");
         let total = 0;
         for (let key in questionBanks) {
             total += questionBanks[key].length;
         }
+        
         const totalEl = document.getElementById('total-questions-header');
-        if (totalEl) totalEl.innerText = total;
+        if (totalEl) {
+            totalEl.innerText = total;
+            console.log("Total questions loaded:", total);
+        }
 
         // Timer
         let seconds = 0;
@@ -1877,6 +1879,7 @@ exam16: [
         }, 1000);
     }
 
+    // Fire the engine
     initApp();
 </script>
 </Layout>
