@@ -1,3 +1,11 @@
+To fix the visibility and restore the timer/total count, we need to update the top section of your src/pages/practice-test.astro file.
+
+I have cleaned up the CSS to ensure the text is bright white and added the Initialization Logic into the script so the timer starts ticking the moment the page loads.
+
+The Complete "Beginning" for practice-test.astro
+Replace everything from the top of your file down to the start of your questionBanks with this:
+
+Code snippet
 ---
 import Layout from '../layouts/BlogPost.astro';
 ---
@@ -9,7 +17,7 @@ import Layout from '../layouts/BlogPost.astro';
 	heroImage="/blog-placeholder-3.jpg"
 >
 	<style>
-		/* Scoped styles for the Quiz App */
+		/* 1. Visibility & Contrast Fixes */
 		.quiz-container {
 			--bg: #0f172a;
 			--panel: #111827;
@@ -21,17 +29,26 @@ import Layout from '../layouts/BlogPost.astro';
 			--bad: #ef4444;
 			--ring: #334155;
 			
-			color: var(--text);
-			padding: 20px;
-			background: rgba(17, 24, 39, 0.85);
-			backdrop-filter: blur(6px);
+			color: #ffffff !important; /* Force white text for the whole app */
+			padding: 24px;
+			background: rgba(17, 24, 39, 0.95);
+			backdrop-filter: blur(8px);
 			border: 1px solid var(--ring);
 			border-radius: 18px;
 			margin-top: 2rem;
 		}
 
+		/* Target Headers specifically to override Global Astro Styles */
+		.quiz-container h1, 
+		.quiz-container h2, 
+		.quiz-container b, 
+		#timer, 
+		#total-questions-header {
+			color: #ffffff !important;
+		}
+
 		.hidden { display: none !important; }
-		.card { background: #0b1224; border: 1px solid var(--ring); border-radius: 14px; padding: 16px; margin-bottom: 1rem; }
+		.card { background: #0b1224; border: 1px solid var(--ring); border-radius: 14px; padding: 20px; margin-bottom: 1rem; }
 		.grid { display: grid; gap: 14px; }
 		.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 		
@@ -40,70 +57,85 @@ import Layout from '../layouts/BlogPost.astro';
 
 		button {
 			background: #111827;
-			color: var(--text);
+			color: #ffffff;
 			border: 1px solid var(--ring);
 			padding: 12px 14px;
 			border-radius: 12px;
 			cursor: pointer;
 			font-weight: 600;
+			transition: all 0.2s ease;
 		}
 
 		button.primary { background: linear-gradient(180deg, #2563eb, #1e40af); border-color: #1d4ed8; }
-		button.secondary { background: linear-gradient(180deg, #16a34a, #15803d); border-color: #16a34a; }
-		button.ghost { background: transparent; border-color: var(--ring); }
-		button:disabled { opacity: 0.5; cursor: not-allowed; }
+		button.secondary { background: linear-gradient(180deg, #16a34a, #15803d); border-color: #16a34a; width: 100%; }
+		button:hover { border-color: var(--brand); transform: translateY(-1px); }
 
-		.progress-wrap { height: 8px; background: #0b1224; border: 1px solid var(--ring); border-radius: 999px; overflow: hidden; }
-		.progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #3b82f6); transition: width 0.25s ease; }
-		.options { display: grid; gap: 10px; margin-top: 1rem; }
-		.option-btn { text-align: left; width: 100%; padding: 12px 14px; border-radius: 12px; background: #0b1224; border: 1px solid var(--ring); }
-		.explain { border-left: 3px solid var(--brand); padding-left: 12px; color: var(--text-dim); margin-top: 1rem; }
+		.progress-wrap { height: 10px; background: #0b1224; border: 1px solid var(--ring); border-radius: 999px; overflow: hidden; }
+		.progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #3b82f6); }
+		.options { display: grid; gap: 10px; margin-top: 1.5rem; }
+		.option-btn { text-align: left; background: #0b1224; border: 1px solid var(--ring); }
 	</style>
 
 	<div class="quiz-container">
-		<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-			<h1>Florida Broker Exam</h1>
-			<div class="muted">⏱ <span id="timer">00:00</span></div>
+		<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--ring); padding-bottom: 10px;">
+			<h1 style="margin:0;">Florida Broker Exam</h1>
+			<div style="display: flex; gap: 15px; font-weight: 600;">
+				<span>⏱ <span id="timer">00:00</span></span>
+				<span class="muted">Total: <span id="total-questions-header">0</span></span>
+			</div>
 		</div>
 
 		<section id="home-screen" class="grid">
 			<div class="card grid">
-				<h2>Select an Exam</h2>
+				<h2 style="margin-bottom: 20px;">Select an Exam Module</h2>
 				<div class="grid grid-4">
 					{Array.from({ length: 16 }).map((_, i) => (
 						<button class="primary" onclick={`startQuiz('exam${i + 1}')`}>Exam {i + 1}</button>
 					))}
 				</div>
-				<div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
+				<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
 					<button class="secondary" onclick="startQuiz('random100')">🎲 Random 100</button>
 					<button class="secondary" onclick="startQuiz('random20')">🎲 Random 20</button>
 				</div>
+				<p style="font-size: 12px; color: var(--text-dim); margin-top: 15px;">
+					Tip: Use <b style="color:white;">1-4</b> to choose options, and <b style="color:white;">Enter</b> for Next.
+				</p>
 			</div>
 		</section>
 
-		<section id="quiz-screen" class="grid hidden">
-			<div class="card grid">
-				<div style="display: flex; justify-content: space-between;">
-					<div>Question <b id="question-number">1</b></div>
-					<div class="progress-wrap" style="width: 150px;"><div id="progress-bar" class="progress-bar"></div></div>
-				</div>
-				<div id="question-text" style="font-size: 18px; margin: 1rem 0;"></div>
-				<div id="options-container" class="options"></div>
-				<div id="explanation-container" class="explain hidden">
-					<strong>Explanation:</strong>
-					<div id="explanation-text"></div>
-				</div>
-				<div style="display: flex; justify-content: space-between; margin-top: 1rem;">
-					<button class="ghost" onclick="location.reload()">Home</button>
-					<button id="next-btn" class="primary" onclick="nextQuestion()" disabled>Next</button>
-				</div>
-			</div>
-		</section>
-	</div>
+		```
 
-	<script is:inline>
-		// PASTE YOUR DATA AND LOGIC HERE
-		 const questionBanks = {
+---
+
+### The Updated Script Logic
+Paste this right at the start of your `<script is:inline>` tag:
+
+```javascript
+<script is:inline>
+    // Initialize Stats and Timer immediately
+    function initApp() {
+        // 1. Calculate Total Questions from the bank
+        const banks = window.questionBanks || {}; 
+        let total = 0;
+        for (let key in banks) {
+            total += banks[key].length;
+        }
+        const totalEl = document.getElementById('total-questions-header');
+        if (totalEl) totalEl.innerText = total;
+
+        // 2. Start the Global Timer
+        let seconds = 0;
+        setInterval(() => {
+            seconds++;
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            const timerEl = document.getElementById('timer');
+            if (timerEl) timerEl.innerText = `${mins}:${secs}`;
+        }, 1000);
+    }
+
+    // This data object should follow next
+    const questionBanks = {
         exam1: [
             { question: "A licensee may remain an involuntary inactive licensee:", options: ["For 1 year.", "For 2 years.", "For 4 years.", "Indefinitely."], answer: 1, explanation: "A license becomes involuntarily inactive for a period of up to two years. After that, it becomes null and void." },
             { question: "The examination application must be accompanied by:", options: ["2 passport-style, quality photographs", "The appropriate fee which includes the fee for the initial license.", "Letters of reference from 2 previous employers.", "A resume."], answer: 1, explanation: "The application requires the appropriate fee. Photographs and references are not required." },
