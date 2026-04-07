@@ -1,7 +1,17 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
 ---
-
+<style>
+  /* This targets the image inside the About page layout */
+  main :global(img) {
+    max-width: 250px;    /* Limits the width so it isn't huge */
+    height: auto;        /* Maintains the original proportions */
+    border-radius: 12px; /* Gives it nice rounded corners */
+    margin: 2rem 0;      /* Adds some space above and below the photo */
+    display: block;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Adds a subtle professional shadow */
+  }
+</style>
 <Layout
 	title="About Carlos Baez"
 	description="Real Estate Broker and IT Infrastructure Specialist based in Davenport, FL."
@@ -19,6 +29,15 @@ import Layout from '../layouts/BlogPost.astro';
 <p>
   When I'm not closing deals or managing infrastructure, you can usually find me researching performance mods for my 1995 Honda Civic Si, spending time with my wife Yokasta and our son Logan, or exploring new worlds on my Lenovo Legion Go.
 </p>
+<h2>Real Estate & Property Management</h2>
+<p>
+  As a licensed Florida Real Estate Broker and the qualifying broker for <strong>LBM Property Management LLC</strong>, I provide comprehensive management solutions in the Davenport area. My expertise includes:
+</p>
+<ul>
+  <li><strong>LBM Property Management LLC:</strong> Full-service residential property management, specializing in long-term rentals and investment stability.</li>
+  <li><strong>Y&C Property Management:</strong> Dedicated oversight of property maintenance, tenant relations, and operational efficiency.</li>
+  <li><strong>Investment Strategy:</strong> Expert guidance on 1031 Exchanges and portfolio growth for domestic and international investors.</li>
+</ul>
 <h2>Technical Expertise</h2>
 <table>
   <thead>
