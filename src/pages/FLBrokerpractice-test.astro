@@ -104,29 +104,7 @@ Paste this right at the start of your `<script is:inline>` tag:
 
 ```javascript
 <script is:inline>
-    // Initialize Stats and Timer immediately
-    function initApp() {
-        // 1. Calculate Total Questions from the bank
-        const banks = window.questionBanks || {}; 
-        let total = 0;
-        for (let key in banks) {
-            total += banks[key].length;
-        }
-        const totalEl = document.getElementById('total-questions-header');
-        if (totalEl) totalEl.innerText = total;
-
-        // 2. Start the Global Timer
-        let seconds = 0;
-        setInterval(() => {
-            seconds++;
-            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const secs = (seconds % 60).toString().padStart(2, '0');
-            const timerEl = document.getElementById('timer');
-            if (timerEl) timerEl.innerText = `${mins}:${secs}`;
-        }, 1000);
-    }
-
-    // This data object should follow next
+    // 1. DATA FIRST
     const questionBanks = {
         exam1: [
             { question: "A licensee may remain an involuntary inactive licensee:", options: ["For 1 year.", "For 2 years.", "For 4 years.", "Indefinitely."], answer: 1, explanation: "A license becomes involuntarily inactive for a period of up to two years. After that, it becomes null and void." },
@@ -1804,59 +1782,37 @@ exam16: [
 ],
     };
 
-		let currentQuestions = [];
-		let currentIdx = 0;
-		let score = 0;
+		// 2. LOGIC SECOND (Using window. to make it global)
+    window.startQuiz = function(examId) {
+        const bank = questionBanks[examId];
+        if (!bank) return alert("Exam not found!");
+        
+        // ... rest of your startQuiz logic (currentQuestions = bank, etc.)
+    }
 
-		window.startQuiz = function(examId) {
-			currentQuestions = questionBanks[examId] || [];
-			currentIdx = 0;
-			score = 0;
-			document.getElementById('home-screen').classList.add('hidden');
-			document.getElementById('quiz-screen').classList.remove('hidden');
-			showQuestion();
-		};
+    // 3. INITIALIZATION THIRD
+    function initApp() {
+        // Calculate Total
+        let total = 0;
+        for (let key in questionBanks) {
+            total += questionBanks[key].length;
+        }
+        
+        const totalEl = document.getElementById('total-questions-header');
+        if (totalEl) totalEl.innerText = total;
 
-		function showQuestion() {
-			const q = currentQuestions[currentIdx];
-			document.getElementById('question-text').innerText = q.question;
-			const container = document.getElementById('options-container');
-			container.innerHTML = '';
-			q.options.forEach((opt, i) => {
-				const btn = document.createElement('button');
-				btn.className = 'option-btn';
-				btn.innerText = opt;
-				btn.onclick = () => checkAnswer(i);
-				container.appendChild(btn);
-			});
-			document.getElementById('explanation-container').classList.add('hidden');
-			document.getElementById('next-btn').disabled = true;
-		}
+        // Start Timer
+        let seconds = 0;
+        setInterval(() => {
+            seconds++;
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            const timerEl = document.getElementById('timer');
+            if (timerEl) timerEl.innerText = `${mins}:${secs}`;
+        }, 1000);
+    }
 
-		window.checkAnswer = function(i) {
-			const q = currentQuestions[currentIdx];
-			const btns = document.querySelectorAll('.option-btn');
-			btns.forEach(b => b.disabled = true);
-			if (i === q.answer) {
-				btns[i].style.borderColor = '#22c55e';
-				score++;
-			} else {
-				btns[i].style.borderColor = '#ef4444';
-				btns[q.answer].style.borderColor = '#22c55e';
-			}
-			document.getElementById('explanation-text').innerText = q.explanation;
-			document.getElementById('explanation-container').classList.remove('hidden');
-			document.getElementById('next-btn').disabled = false;
-		};
-
-		window.nextQuestion = function() {
-			currentIdx++;
-			if (currentIdx < currentQuestions.length) {
-				showQuestion();
-			} else {
-				alert(`Finished! Score: ${score}/${currentQuestions.length}`);
-				location.reload();
-			}
-		};
-	</script>
+    // Run it!
+    initApp();
+</script>
 </Layout>
